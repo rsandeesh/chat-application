@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #chat-log {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #input-container {
+            margin-top: 10px;
+        }
+
+        #input-container input[type="text"] {
+            width: 80%;
+            padding: 5px;
+            font-size: 16px;
+        }
+
+        #input-container button {
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<h1>Chat App</h1>
+
+<div id="chat-log"></div>
+
+<div id="input-container">
+    <select name="r" id="clientId">
+        <option value="2">Minion Client 1</option>
+        <option value="3">Minion Client 2</option>
+        <option value="4">Minion Client 3</option>
+    </select>
+    <input type="text" id="message-input" placeholder="Enter your message">
+    <button id="send-button">Send</button>
+</div>
+
+<script>
+    const socket = new WebSocket('ws://localhost:8080');
+    const chatLog = document.getElementById('chat-log');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const clientId = document.getElementById('clientId');
+
+    function addMessageToLog(message) {
+        console.log(message);
+        const p = document.createElement('p');
+        p.textContent = message;
+        chatLog.appendChild(p);
+    }
+
+    function sendMessage() {
+        console.log(clientId.value);
+        const message = clientId.value +':'+messageInput.value;
+        if (message.trim() !== '') {
+            console.log(message);
+            socket.send(JSON.stringify({type:'request',message:message}));
+            messageInput.value = '';
+        }
+    }
+
+    socket.onmessage = function(event) {
+        console.log(event);
+        addMessageToLog(event.data);
+    };
+
+    sendButton.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+</body>
+</html>
